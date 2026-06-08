@@ -54,7 +54,7 @@ cd ..
 - Native Asset: XLM (via SAC)
 
 ## Team
-- PLP — @[github-username]
+- Mark Anthony Tugay — @Seiya00
 
 ## License
 MIT
