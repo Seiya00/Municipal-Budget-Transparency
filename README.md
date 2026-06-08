@@ -1,87 +1,60 @@
-# Municipal Budget Transparency Tracker (Stellar/Soroban)
+# MuniciPay Audit
 
-A blockchain-powered civic accountability tool designed for the **StellarX PH workshop**. This project transforms municipal budgeting from static paper reports into a real-time, tamper-proof, and publicly verifiable audit trail on the Stellar network.
+A real-time, blockchain-powered transparency portal for municipal disbursements.
 
-## System Overview
+## Problem
+Municipal budgets in the Philippines are often paper-based and opaque, leading to public mistrust or inefficient fund tracking. Citizens rarely have a way to see how their taxes are being spent in real-time. This project solves the "black box" of government spending by providing a live, immutable audit trail of every centavo disbursed.
 
-The system consists of two distinct layers:
-1.  **Public Transparency Portal (`/`)**: A wide-screen dashboard for citizens to view the live audit log of every government disbursement.
-2.  **Official Dashboard (`/admin`)**: A secure administrative area for authorized officials to manage the budget and authorize real-money XLM transfers.
+## How It Works
+1. **Citizens** visit the Public Transparency Portal to view the **Live Audit Log**, showing exactly when, why, and to whom funds were sent.
+2. **Authorized Officials** log in to the Official Dashboard using a secure administrative gate.
+3. Officials record disbursements by entering an amount, recipient, and purpose.
+4. The system performs a **Real XLM Transfer** from the official's wallet to the recipient, ensuring the audit log is a 1:1 reflection of actual financial movement.
+5. The budget automatically resets every **January 1st**, maintaining a clear fiscal year record while preserving history.
 
-### Key Features
-- **Real-Money Transfers**: Unlike simple trackers, this system performs actual XLM transfers using the Stellar Asset Contract (SAC).
-- **Autonomous Yearly Reset**: The contract automatically resets the yearly "Spent" counter on January 1st based on ledger time, while preserving the full audit history.
-- **Immutable Audit Log**: Every disbursement records the amount, recipient address, purpose (description), and a blockchain timestamp.
-- **Administrative Security**: Official actions are gated by a password and require a real signature from the official's Freighter wallet.
+## How It Uses Stellar
+- **Soroban Smart Contracts**: Manages the municipal budget state, fiscal year reset logic, and the on-chain audit log.
+- **Stellar Asset Contract (SAC)**: Facilitates real-money XLM transfers directly within the contract execution.
+- **Public Ledger**: Provides an immutable, tamper-proof record that anyone can verify using a block explorer.
+- **Freighter Wallet**: Ensures that only authorized officials with the correct private keys can sign and broadcast disbursements.
 
-```
-.
-├── web/                      # Next.js 16 + TypeScript + Tailwind frontend
-├── contracts/savings-goal/   # Rust Soroban contract (Municipal Budget Logic)
-├── scripts/                  # deploy.ps1 (Real-money initialization)
-├── Cargo.toml                # Rust workspace
-└── CLAUDE.md                 # stack notes + Stellar gotchas (read this!)
-```
+## Track
+Track 5 Social Impact
 
-## Prerequisites
+## Tech Stack
+- Framework: Next.js 16 (TypeScript + Tailwind CSS)
+- Stellar SDK: @stellar/stellar-sdk ^15.1.0
+- Network: testnet
+- Contract Language: Rust (Soroban SDK)
 
-- **Node.js 20+** and **npm** — for the frontend.
-- **Freighter** browser extension — switch it to **Test Net**.
-- **Rust** and the **Stellar CLI** — for contract deployment.
-- **wasm32v1-none** target installed via `rustup`.
+## Setup & Run
 
-## 1. Run the Frontend
+```bash
+# 1. Clone the repository
+git clone [your-repo-link]
+cd [project-folder]
 
-```powershell
+# 2. Install dependencies
 cd web
 npm install
-npm run dev
-```
+cd ..
 
-Open <http://localhost:3002> to view the **Public Transparency Portal**.
-
-## 2. Deploy & Initialize the Contract
-
-```powershell
-# From the repo root
+# 3. Deploy the Smart Contract (Requires Rust & Stellar CLI)
+# This script builds, deploys, and initializes the budget tracker.
 .\scripts\deploy.ps1
+
+# 4. Run the development server
+.\dev.ps1
 ```
 
-The deployment script will:
-1. Build the Rust contract.
-2. Deploy it to the Stellar Testnet.
-3. Initialize it with a **1,000,000 XLM** budget.
-4. Link it to the **Native XLM Token Contract**.
-5. Automatically update `web/.env.local` with the new `NEXT_PUBLIC_CONTRACT_ID`.
+## Network Details
+- Network: testnet
+- RPC URL: https://soroban-testnet.stellar.org
+- Contract ID: CCCYDD74H5DP75AYANSROJS2RYEAM7GJYIT277G2T4MSAYKRH5FG4SKJ
+- Native Asset: XLM (via SAC)
 
-## 3. Operating the System
+## Team
+- PLP — @[github-username]
 
-### For Citizens
-- Simply visit the home page to see the **Live Audit Log**.
-- Every entry is verifiable on the Stellar ledger via the provided recipient addresses and timestamps.
-
-### For Officials
-1. Click **Official Login** in the header.
-2. Enter the administrative password: `municipal2026`.
-3. In the **Official Dashboard**:
-    - Connect your **Freighter** wallet.
-    - Ensure your wallet has enough XLM (use the **Fund Account** button if needed).
-    - Fill out the **Authorize Disbursement** form.
-    - Sign the transaction. The XLM will be transferred immediately, and the audit log will update.
-
-## Contract Architecture (`contracts/savings-goal/src/lib.rs`)
-
-| Function | Purpose |
-|---|---|
-| `init(total_budget, native_token)` | Sets the yearly budget and links the XLM asset. |
-| `disburse(official, amount, desc, recipient)` | Performs a real XLM transfer and records the metadata. |
-| `get_state() -> State` | Returns `spent`, `total_budget`, `history`, and `current_year`. |
-
-## Troubleshooting
-
-- **Disbursement Fails**: Ensure the connected Freighter wallet has more XLM than the disbursement amount + fees.
-- **Login Issues**: The default administrative password is `municipal2026`.
-- **Contract Not Syncing**: If the dashboard shows "No contract deployed", ensure you have run the `deploy.ps1` script and restarted the dev server.
-
----
-Built for the StellarX PH workshop @ PUP QC. Focused on using public ledgers as a tool for financial inclusion and civic accountability.
+## License
+MIT
