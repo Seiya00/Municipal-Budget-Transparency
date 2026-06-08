@@ -1,11 +1,5 @@
-# Deploy the savings-goal contract to Stellar testnet, then write the contract
+# Deploy the budget contract to Stellar testnet, then write the contract
 # ID into web\.env.local so the frontend can call it.
-#
-# Prereqs (from the workshop setup checklist): Rust + the wasm32v1-none target,
-# and the Stellar CLI (run `stellar --version` to confirm).
-#
-# Usage:  .\scripts\deploy.ps1 [identityName]   (default identity: workshop)
-
 param([string]$Identity = "workshop")
 
 $ErrorActionPreference = "Stop"
@@ -32,12 +26,15 @@ Write-Host "Deploying to $Network..."
 $ContractId = (stellar contract deploy --wasm $Wasm --source-account $Identity --network $Network).Trim()
 Write-Host "Deployed contract ID: $ContractId"
 
-# 4. Initialise the savings goal (target = 1000). Ignore error if already initialised.
-Write-Host "Initialising savings goal (target 1000)..."
+# 4. Initialise the municipal budget (total_budget = 1,000,000).
+# The native XLM token contract ID on Testnet is CDLZBA4O654Y7NIX3H6W3V7U74T76KEMXJ6H5KUXM7F27Y55I63B72BA
+Write-Host "Initialising municipal budget (total_budget 1000000)..."
 try {
-  stellar contract invoke --id $ContractId --source-account $Identity --network $Network -- init --target 1000
+  $NativeToken = "CDLZBA4O654Y7NIX3H6W3V7U74T76KEMXJ6H5KUXM7F27Y55I63B72BA"
+  # Use positional arguments if named ones are being misinterpreted by the shell/CLI
+  stellar contract invoke --id $ContractId --source-account $Identity --network $Network -- init --total_budget 1000000 --native_token "$NativeToken"
 } catch {
-  Write-Host "(init skipped — contract may already be initialised)"
+  Write-Host "(init skipped or failed - contract may already be initialised)"
 }
 
 # 5. Write NEXT_PUBLIC_CONTRACT_ID into web\.env.local

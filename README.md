@@ -1,134 +1,87 @@
-# StellarX Workshop Starter
+# Municipal Budget Transparency Tracker (Stellar/Soroban)
 
-A ready-to-run scaffold for the **StellarX PH workshop @ PUP QC**. It gives you a
-working Stellar app on **testnet** so you can spend the workshop bending it toward
-your own idea instead of fighting setup.
+A blockchain-powered civic accountability tool designed for the **StellarX PH workshop**. This project transforms municipal budgeting from static paper reports into a real-time, tamper-proof, and publicly verifiable audit trail on the Stellar network.
 
-It covers **both** workshop tracks:
+## System Overview
 
-- **Fullstack payments** — a Next.js app: connect Freighter → fund via Friendbot →
-  view XLM/USDC balances → send a payment → confirm on-chain.
-- **Soroban smart contract** — a small Rust contract (a *Savings Goal* tracker)
-  you build, test, deploy with the Stellar CLI, and call from the same frontend.
+The system consists of two distinct layers:
+1.  **Public Transparency Portal (`/`)**: A wide-screen dashboard for citizens to view the live audit log of every government disbursement.
+2.  **Official Dashboard (`/admin`)**: A secure administrative area for authorized officials to manage the budget and authorize real-money XLM transfers.
+
+### Key Features
+- **Real-Money Transfers**: Unlike simple trackers, this system performs actual XLM transfers using the Stellar Asset Contract (SAC).
+- **Autonomous Yearly Reset**: The contract automatically resets the yearly "Spent" counter on January 1st based on ledger time, while preserving the full audit history.
+- **Immutable Audit Log**: Every disbursement records the amount, recipient address, purpose (description), and a blockchain timestamp.
+- **Administrative Security**: Official actions are gated by a password and require a real signature from the official's Freighter wallet.
 
 ```
 .
 ├── web/                      # Next.js 16 + TypeScript + Tailwind frontend
-├── contracts/savings-goal/   # Rust Soroban contract (init / contribute / get_state)
-├── scripts/                  # deploy.ps1 (Windows) / deploy.sh
+├── contracts/savings-goal/   # Rust Soroban contract (Municipal Budget Logic)
+├── scripts/                  # deploy.ps1 (Real-money initialization)
 ├── Cargo.toml                # Rust workspace
 └── CLAUDE.md                 # stack notes + Stellar gotchas (read this!)
 ```
 
 ## Prerequisites
 
-From the [workshop setup checklist](https://stellar-pup-qc-may-2026-checklist.vercel.app/):
-
 - **Node.js 20+** and **npm** — for the frontend.
-- **Freighter** browser extension — create a wallet, switch it to **Test Net**.
-- For the contract track: **Rust**, the `wasm32v1-none` target, and the **Stellar CLI**.
+- **Freighter** browser extension — switch it to **Test Net**.
+- **Rust** and the **Stellar CLI** — for contract deployment.
+- **wasm32v1-none** target installed via `rustup`.
 
-You can run the **payments demo with just Node + Freighter** — Rust/CLI are only
-needed to deploy the Soroban contract.
-
-### Install the contract toolchain (Windows)
-
-Install Rust and the Stellar CLI:
-
-```powershell
-winget install --id Rustlang.Rustup -e --accept-source-agreements --accept-package-agreements
-winget install --id Stellar.StellarCLI -e --accept-source-agreements --accept-package-agreements
-```
-
-Then **open a new terminal** (so `cargo`/`stellar` land on PATH) and give Rust a
-working linker — pick one:
-
-**Easiest — GNU toolchain** (no admin, no large download):
-
-```powershell
-rustup default stable-x86_64-pc-windows-gnu
-rustup target add wasm32v1-none
-```
-
-**Or MSVC** (matches Stellar's docs): install the **Visual C++ Build Tools** (the
-"Desktop development with C++" workload), then:
-
-```powershell
-rustup target add wasm32v1-none
-```
-
-> If `cargo` fails with *"linker `link.exe` not found"*, you skipped the step
-> above — use the GNU toolchain or install the Build Tools.
-
-On macOS/Linux: install Rust from <https://rustup.rs>, run
-`rustup target add wasm32v1-none`, and install the Stellar CLI
-(`brew install stellar-cli`).
-
-## 1. Run the frontend (the part that demos immediately)
+## 1. Run the Frontend
 
 ```powershell
 cd web
-npm install        # already run if you scaffolded via this repo
+npm install
 npm run dev
 ```
 
-Open <http://localhost:3000>, then:
+Open <http://localhost:3002> to view the **Public Transparency Portal**.
 
-1. **Connect Freighter** (approve in the extension; make sure it's on Test Net).
-2. **Fund with Friendbot** — your XLM balance jumps to ~10,000.
-3. **Send a payment** to another *existing, funded* testnet account
-   (create one at <https://laboratory.stellar.org/#account-creator?network=test>).
-4. Watch the status go Building → Signing → Submitting → Confirming → Success,
-   then open the **Stellar Expert** link to see it on-chain.
-
-`web/.env.local` is pre-filled with testnet config. `NEXT_PUBLIC_CONTRACT_ID` is
-left empty — the Savings Goal panel shows deploy instructions until you set it.
-
-## 2. Build, test & deploy the Soroban contract
+## 2. Deploy & Initialize the Contract
 
 ```powershell
-# from the repo root
-cargo test                 # runs the contract unit tests (no network needed)
-
-# deploy to testnet + auto-wire the contract ID into web/.env.local
-.\scripts\deploy.ps1       # macOS/Linux:  ./scripts/deploy.sh
+# From the repo root
+.\scripts\deploy.ps1
 ```
 
-The deploy script will: create+fund a testnet identity (if needed), run
-`stellar contract build`, deploy, initialise the goal (target `1000`), and write
-`NEXT_PUBLIC_CONTRACT_ID` into `web/.env.local`. **Restart `npm run dev`** and the
-**Savings Goal** panel goes live: it reads on-chain progress and lets a connected
-wallet `contribute` (a real signed Soroban transaction).
+The deployment script will:
+1. Build the Rust contract.
+2. Deploy it to the Stellar Testnet.
+3. Initialize it with a **1,000,000 XLM** budget.
+4. Link it to the **Native XLM Token Contract**.
+5. Automatically update `web/.env.local` with the new `NEXT_PUBLIC_CONTRACT_ID`.
 
-### The contract (`contracts/savings-goal/src/lib.rs`)
+## 3. Operating the System
+
+### For Citizens
+- Simply visit the home page to see the **Live Audit Log**.
+- Every entry is verifiable on the Stellar ledger via the provided recipient addresses and timestamps.
+
+### For Officials
+1. Click **Official Login** in the header.
+2. Enter the administrative password: `municipal2026`.
+3. In the **Official Dashboard**:
+    - Connect your **Freighter** wallet.
+    - Ensure your wallet has enough XLM (use the **Fund Account** button if needed).
+    - Fill out the **Authorize Disbursement** form.
+    - Sign the transaction. The XLM will be transferred immediately, and the audit log will update.
+
+## Contract Architecture (`contracts/savings-goal/src/lib.rs`)
 
 | Function | Purpose |
 |---|---|
-| `init(target: i128)` | Set the savings target (once). |
-| `contribute(amount: i128) -> i128` | Add to the saved total; returns the new total. |
-| `get_state() -> State` | Read `{ saved, target }`. |
-
-It uses plain integer state (no token transfers) so it's bulletproof in a live
-demo. To make it move real money, swap `contribute` to call the XLM/USDC SAC
-`transfer` and store per-user contributions — see CLAUDE.md for the SAC addresses.
-
-## 3. Make it your idea
-
-This is your *starting point*, not the answer. Pick an idea + track from the
-workshop's 300-ideas list (Philippines remittance / payments / financial
-inclusion themes score well), then reshape the components and the contract.
-Good extension paths: transaction history from Horizon, USDC trustline + send,
-a swap via Soroswap, a price feed via Reflector.
-
-For a fully worked example built on this scaffold, see the **Paluwagan** app in
-`..\Stellar-Workshop-PUP-May-2026-EXAMPLE`.
+| `init(total_budget, native_token)` | Sets the yearly budget and links the XLM asset. |
+| `disburse(official, amount, desc, recipient)` | Performs a real XLM transfer and records the metadata. |
+| `get_state() -> State` | Returns `spent`, `total_budget`, `history`, and `current_year`. |
 
 ## Troubleshooting
 
-- **Freighter "not detected"** — install it, reload the page, and confirm it's unlocked.
-- **Payment fails `op_no_destination`** — fund the destination account first.
-- **`tx_bad_auth`** — wrong network passphrase; this app uses `Networks.TESTNET`.
-- **Contract panel can't read state** — make sure you deployed *and* ran `init`,
-  and that `NEXT_PUBLIC_CONTRACT_ID` is set, then restart the dev server.
+- **Disbursement Fails**: Ensure the connected Freighter wallet has more XLM than the disbursement amount + fees.
+- **Login Issues**: The default administrative password is `municipal2026`.
+- **Contract Not Syncing**: If the dashboard shows "No contract deployed", ensure you have run the `deploy.ps1` script and restarted the dev server.
 
-See **CLAUDE.md** for the full list of Stellar gotchas.
+---
+Built for the StellarX PH workshop @ PUP QC. Focused on using public ledgers as a tool for financial inclusion and civic accountability.
